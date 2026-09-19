@@ -12,9 +12,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Define allowed origins for CORS
+origins = [
+    "http://localhost:3000",      # Local Next.js dev server
+    "http://127.0.0.1:3000",      # Local alternative host
+    "https://*.pages.dev",        # Cloudflare Pages previews
+    "*"                           # Wildcard for production fallback
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
