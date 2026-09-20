@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from typing import List
 import database
 import models
 import schemas
@@ -12,19 +13,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Define allowed origins for CORS
+# Explicit CORS origins configuration
 origins = [
-    "http://localhost:3000",      # Local Next.js dev server
-    "http://127.0.0.1:3000",      # Local alternative host
-    "https://*.pages.dev",        # Cloudflare Pages previews
-    "*"                           # Wildcard for production fallback
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://portfolio-frontend-55d.pages.dev",  # Live Cloudflare Pages frontend
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -39,3 +39,9 @@ def submit_contact_form(payload: schemas.ContactCreate, db: Session = Depends(da
     db.commit()
     db.refresh(db_message)
     return db_message
+
+# Endpoint to fetch form submissions directly via /docs
+@app.get("/api/messages", response_model=List[schemas.ContactResponse])
+def get_contact_messages(db: Session = Depends(database.get_db)):
+    messages = db.query(models.ContactMessage).order_by(models.ContactMessage.id.desc()).all()
+    return messages
